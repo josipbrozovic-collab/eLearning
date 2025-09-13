@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>eLearning Ecosystem – Spiderweb</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Interactive spiderweb map of eLearning tools, platforms and best-practice examples." />
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    /* Optional font (comment out if offline) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    :root { --violet:#8B5CF6; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+    /* Motion + animation helpers */
+    .pulse-animation { animation: pulse 3s infinite; }
+    .float-animation { animation: float 4s ease-in-out infinite; }
+    .resource-bubble { opacity: 0; transform: scale(0.8); transition: transform .35s ease, opacity .35s ease; }
+    .resource-bubble.visible { opacity: 1; transform: scale(1); }
+    .connection-arrow { opacity: 0; transition: opacity .3s ease; }
+    .connection-arrow.visible { opacity: 1; }
+    .arrow-line { stroke-dasharray: 5 3; animation: dash 2s linear infinite; }
+
+    /* Reduced motion respect */
+    @media (prefers-reduced-motion: reduce) {
+      .pulse-animation, .float-animation, .arrow-line { animation: none !important; }
+      .resource-bubble, .connection-arrow { transition: none !important; }
+    }
+
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:.9} 50%{transform:scale(1.05);opacity:1} }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    @keyframes dash { to { stroke-dashoffset: -8; } }
+
+    /* Node hover */
+    .ecosystem-node { transition: transform .25s ease; cursor: pointer; position: absolute; }
+    .ecosystem-node:hover { transform: scale(1.06); z-index: 25; }
+
+    /* Modal */
+    .modal-backdrop { backdrop-filter: blur(12px); }
+    .slide-in { animation: slideIn .35s ease-out; }
+    @keyframes slideIn { from { transform: translateY(-24px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen overflow-hidden">
+  <!-- Header -->
+  <header class="relative z-30 p-6 text-center select-none">
+    <h1 class="text-5xl font-bold text-white mb-2">eLearning Ecosystem</h1>
+    <p class="text-purple-200 text-lg">Click or press Enter on any category to explore connections</p>
+  </header>
+
+  <!-- Main Stage -->
+  <main class="relative w-full" style="height: calc(100vh - 120px);">
+    <!-- SVG lines/arrows layer -->
+    <svg class="absolute inset-0 w-full h-full" aria-hidden="true" focusable="false" style="z-index:5">
+      <!-- Static web connections -->
+      <line x1="50%" y1="50%" x2="50%" y2="15%" stroke="rgba(139, 92, 246, 0.3)" stroke-width="2"/>
+      <line x1="50%" y1="50%" x2="15%" y2="25%" stroke="rgba(139, 92, 246, 0.3)" stroke-width="2"/>
+      <line x1="50%" y1="50%" x2="85%" y2="25%" stroke="rgba(139, 92, 246, 0.3)" stroke-width="2"/>
+      <line x1="50%" y1="50%" x2="20%" y2="70%" stroke="rgba(139, 92, 246, 0.3)" stroke-width="2"/>
+      <line x1="50%" y1="50%" x2="80%" y2="70%" stroke="rgba(139, 92, 246, 0.3)" stroke-width="2"/>
+      <g id="dynamic-arrows"></g>
+    </svg>
+
+    <!-- Center Hub -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ecosystem-node" style="z-index:20">
+      <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full w-32 h-32 flex items-center justify-center shadow-2xl pulse-animation" aria-hidden="true">
+        <div class="text-center text-white">
+          <div class="text-3xl mb-1">🎯</div>
+          <div class="text-sm font-bold">eLearning</div>
+          <div class="text-xs opacity-90">Ecosystem</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Nodes -->
+    <button class="ecosystem-node" style="top:15%;left:50%;transform:translate(-50%,-50%);z-index:15" aria-label="Creation Platforms and LMS" data-category="platforms">
+      <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full w-24 h-24 flex items-center justify-center shadow-xl float-animation">
+        <div class="text-center text-white">
+          <div class="text-xl mb-1">🏗️</div>
+          <div class="text-xs font-semibold leading-tight">Creation<br/>Platforms<br/>&amp; LMS</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="ecosystem-node" style="top:25%;left:15%;transform:translate(-50%,-50%);z-index:15" aria-label="Authoring Tools" data-category="authoring">
+      <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-full w-24 h-24 flex items-center justify-center shadow-xl float-animation" style="animation-delay:.5s">
+        <div class="text-center text-white">
+          <div class="text-xl mb-1">✏️</div>
+          <div class="text-xs font-semibold leading-tight">Authoring<br/>Tools</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="ecosystem-node" style="top:25%;left:85%;transform:translate(-50%,-50%);z-index:15" aria-label="Interactive Elements" data-category="interactive">
+      <div class="bg-gradient-to-r from-purple-500 to-violet-600 rounded-full w-24 h-24 flex items-center justify-center shadow-xl float-animation" style="animation-delay:1s">
+        <div class="text-center text-white">
+          <div class="text-xl mb-1">🎮</div>
+          <div class="text-xs font-semibold leading-tight">Interactive<br/>Elements</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="ecosystem-node" style="top:70%;left:20%;transform:translate(-50%,-50%);z-index:15" aria-label="Digital Repositories" data-category="repositories">
+      <div class="bg-gradient-to-r from-red-500 to-pink-600 rounded-full w-24 h-24 flex items-center justify-center shadow-xl float-animation" style="animation-delay:1.5s">
+        <div class="text-center text-white">
+          <div class="text-xl mb-1">📚</div>
+          <div class="text-xs font-semibold leading-tight">Digital<br/>Repositories</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="ecosystem-node" style="top:70%;left:80%;transform:translate(-50%,-50%);z-index:15" aria-label="Best Practice Examples" data-category="examples">
+      <div class="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full w-24 h-24 flex items-center justify-center shadow-xl float-animation" style="animation-delay:2s">
+        <div class="text-center text-white">
+          <div class="text-xl mb-1">🏆</div>
+          <div class="text-xs font-semibold leading-tight">Best Practice<br/>Examples</div>
+        </div>
+      </div>
+    </button>
+
+    <!-- Resources: platforms -->
+    <div id="platforms-resources" aria-hidden="true">
+      <button class="ecosystem-node resource-bubble" style="top:8%;left:40%;transform:translate(-50%,-50%);z-index:10" data-resource="moodle" aria-label="Moodle"></button>
+      <button class="ecosystem-node resource-bubble" style="top:8%;left:60%;transform:translate(-50%,-50%);z-index:10" data-resource="canvas" aria-label="Canvas LMS"></button>
+      <button class="ecosystem-node resource-bubble" style="top:5%;left:50%;transform:translate(-50%,-50%);z-index:10" data-resource="classroom" aria-label="Google Classroom"></button>
+    </div>
+
+    <!-- Resources: authoring -->
+    <div id="authoring-resources" aria-hidden="true">
+      <button class="ecosystem-node resource-bubble" style="top:18%;left:8%;transform:translate(-50%,-50%);z-index:10" data-resource="articulate" aria-label="Articulate 360"></button>
+      <button class="ecosystem-node resource-bubble" style="top:25%;left:5%;transform:translate(-50%,-50%);z-index:10" data-resource="h5p" aria-label="H5P"></button>
+      <button class="ecosystem-node resource-bubble" style="top:35%;left:8%;transform:translate(-50%,-50%);z-index:10" data-resource="lumi" aria-label="Lumi"></button>
+      <button class="ecosystem-node resource-bubble" style="top:42%;left:5%;transform:translate(-50%,-50%);z-index:10" data-resource="captivate" aria-label="Adobe Captivate"></button>
+    </div>
+
+    <!-- Resources: interactive -->
+    <div id="interactive-resources" aria-hidden="true">
+      <button class="ecosystem-node resource-bubble" style="top:18%;left:92%;transform:translate(-50%,-50%);z-index:10" data-resource="genially" aria-label="Genially"></button>
+      <button class="ecosystem-node resource-bubble" style="top:25%;left:95%;transform:translate(-50%,-50%);z-index:10" data-resource="thinglink" aria-label="Thinglink"></button>
+      <button class="ecosystem-node resource-bubble" style="top:35%;left:92%;transform:translate(-50%,-50%);z-index:10" data-resource="canva" aria-label="Canva"></button>
+      <button class="ecosystem-node resource-bubble" style="top:42%;left:95%;transform:translate(-50%,-50%);z-index:10" data-resource="kahoot" aria-label="Kahoot!"></button>
+    </div>
+
+    <!-- Resources: repositories -->
+    <div id="repositories-resources" aria-hidden="true">
+      <button class="ecosystem-node resource-bubble" style="top:50%;left:12%;transform:translate(-50%,-50%);z-index:10" data-resource="oer" aria-label="OER Commons"></button>
+      <button class="ecosystem-node resource-bubble" style="top:57%;left:8%;transform:translate(-50%,-50%);z-index:10" data-resource="merlot" aria-label="MERLOT"></button>
+      <button class="ecosystem-node resource-bubble" style="top:64%;left:12%;transform:translate(-50%,-50%);z-index:10" data-resource="europeana" aria-label="Europeana"></button>
+      <button class="ecosystem-node resource-bubble" style="top:71%;left:8%;transform:translate(-50%,-50%);z-index:10" data-resource="mit" aria-label="MIT OCW"></button>
+    </div>
+
+    <!-- Resources: examples -->
+    <div id="examples-resources" aria-hidden="true">
+      <button class="ecosystem-node resource-bubble" style="top:50%;left:88%;transform:translate(-50%,-50%);z-index:10" data-resource="duolingo" aria-label="Duolingo"></button>
+      <button class="ecosystem-node resource-bubble" style="top:57%;left:92%;transform:translate(-50%,-50%);z-index:10" data-resource="coursera" aria-label="Coursera"></button>
+      <button class="ecosystem-node resource-bubble" style="top:64%;left:88%;transform:translate(-50%,-50%);z-index:10" data-resource="edx" aria-label="edX"></button>
+      <button class="ecosystem-node resource-bubble" style="top:71%;left:92%;transform:translate(-50%,-50%);z-index:10" data-resource="khan" aria-label="Khan Academy"></button>
+    </div>
+  </main>
+
+  <!-- Visually rendered resource chips (created by JS to keep markup DRY) -->
+  <template id="chip-template">
+    <div class="rounded-full w-16 h-16 flex items-center justify-center shadow-lg text-white text-[11px] font-semibold text-center leading-tight select-none"></div>
+  </template>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black/70 modal-backdrop hidden items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-lg w-[92vw] slide-in" role="document">
+      <div class="flex justify-between items-start mb-4">
+        <h2 id="modal-title" class="text-2xl font-bold text-gray-800">Title</h2>
+        <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700 text-2xl leading-none" aria-label="Close">×</button>
+      </div>
+      <div id="modal-content" class="text-gray-700 leading-relaxed mb-6"></div>
+      <div id="modal-link" class="mb-2"></div>
+      <p class="text-xs text-gray-400">Links open in a new tab.</p>
+    </div>
+  </div>
+
+  <script>
+    // ---- Configuration ----
+    const categoryPositions = { platforms:{x:50,y:15}, authoring:{x:15,y:25}, interactive:{x:85,y:25}, repositories:{x:20,y:70}, examples:{x:80,y:70} };
+    const resourcePositions = {
+      platforms:[{x:40,y:8},{x:60,y:8},{x:50,y:5}],
+      authoring:[{x:8,y:18},{x:5,y:25},{x:8,y:35},{x:5,y:42}],
+      interactive:[{x:92,y:18},{x:95,y:25},{x:92,y:35},{x:95,y:42}],
+      repositories:[{x:12,y:50},{x:8,y:57},{x:12,y:64},{x:8,y:71}],
+      examples:[{x:88,y:50},{x:92,y:57},{x:88,y:64},{x:92,y:71}],
+    };
+
+    const resourceData = {
+      moodle:{ t:"Moodle", c:"Open-source LMS for blended and online learning.", u:"https://moodle.org", color:"bg-blue-400 hover:bg-blue-500" },
+      canvas:{ t:"Canvas LMS", c:"Intuitive, modern LMS with multimedia integration.", u:"https://www.instructure.com/canvas", color:"bg-blue-400 hover:bg-blue-500" },
+      classroom:{ t:"Google Classroom", c:"Lightweight platform integrated with Google Workspace.", u:"https://classroom.google.com", color:"bg-blue-400 hover:bg-blue-500" },
+
+      articulate:{ t:"Articulate 360", c:"Suite of authoring tools (Rise, Storyline) for responsive courses.", u:"https://articulate.com/360", color:"bg-green-400 hover:bg-green-500" },
+      h5p:{ t:"H5P", c:"Free tool to create interactive activities.", u:"https://h5p.org", color:"bg-green-400 hover:bg-green-500" },
+      lumi:{ t:"Lumi", c:"Desktop app to edit/export H5P content without an LMS.", u:"https://lumi.education", color:"bg-green-400 hover:bg-green-500" },
+      captivate:{ t:"Adobe Captivate", c:"Advanced authoring for simulations and responsive design.", u:"https://www.adobe.com/products/captivate.html", color:"bg-green-400 hover:bg-green-500" },
+
+      genially:{ t:"Genially", c:"Interactive presentations, infographics, and gamified content.", u:"https://www.genial.ly", color:"bg-purple-400 hover:bg-purple-500" },
+      thinglink:{ t:"Thinglink", c:"Create interactive images, videos, and virtual tours.", u:"https://www.thinglink.com", color:"bg-purple-400 hover:bg-purple-500" },
+      canva:{ t:"Canva", c:"Templates and design resources for courses.", u:"https://www.canva.com", color:"bg-purple-400 hover:bg-purple-500" },
+      kahoot:{ t:"Kahoot!", c:"Game-based quizzes and interactive assessments.", u:"https://kahoot.com", color:"bg-purple-400 hover:bg-purple-500" },
+
+      oer:{ t:"OER Commons", c:"Open Educational Resources hub.", u:"https://www.oercommons.org", color:"bg-red-400 hover:bg-red-500" },
+      merlot:{ t:"MERLOT", c:"Multimedia Educational Resource for Learning and Teaching.", u:"https://www.merlot.org", color:"bg-red-400 hover:bg-red-500" },
+      europeana:{ t:"Europeana", c:"European cultural heritage resources.", u:"https://www.europeana.eu", color:"bg-red-400 hover:bg-red-500" },
+      mit:{ t:"MIT OpenCourseWare", c:"Free courses and educational materials.", u:"https://ocw.mit.edu", color:"bg-red-400 hover:bg-red-500" },
+
+      duolingo:{ t:"Duolingo", c:"Gamified language learning platform.", u:"https://www.duolingo.com", color:"bg-indigo-400 hover:bg-indigo-500" },
+      coursera:{ t:"Coursera", c:"MOOCs from universities and companies.", u:"https://www.coursera.org", color:"bg-indigo-400 hover:bg-indigo-500" },
+      edx:{ t:"edX", c:"University-level online courses.", u:"https://www.edx.org", color:"bg-indigo-400 hover:bg-indigo-500" },
+      khan:{ t:"Khan Academy", c:"Free courses and practice exercises.", u:"https://www.khanacademy.org", color:"bg-indigo-400 hover:bg-indigo-500" },
+    };
+
+    let activeCategory = null;
+
+    const arrowContainer = document.getElementById('dynamic-arrows');
+    const chipTpl = document.getElementById('chip-template');
+
+    // Build visible chips inside each resource bubble button
+    document.querySelectorAll('[data-resource]').forEach(btn => {
+      const key = btn.getAttribute('data-resource');
+      const data = resourceData[key];
+      const chip = chipTpl.content.firstElementChild.cloneNode(true);
+      chip.className += ` ${data.color}`;
+      chip.textContent = data.t.split(' ').length > 1 ? data.t.replace(' ', '\n') : data.t;
+      btn.appendChild(chip);
+    });
+
+    // Category toggling (click or keyboard)
+    document.querySelectorAll('[data-category]').forEach(node => {
+      node.setAttribute('role', 'button');
+      node.setAttribute('tabindex', '0');
+      node.addEventListener('click', () => toggleCategory(node.dataset.category));
+      node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCategory(node.dataset.category); } });
+    });
+
+    // Resource opening
+    document.querySelectorAll('[data-resource]').forEach(btn => {
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('tabindex', '0');
+      btn.addEventListener('click', () => openResource(btn.dataset.resource));
+      btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openResource(btn.dataset.resource); } });
+    });
+
+    function toggleCategory(category) {
+      clearArrows();
+      hideAllResources();
+      if (activeCategory === category) { activeCategory = null; return; }
+      activeCategory = category;
+      showCategoryResources(category);
+      drawArrows(category);
+    }
+
+    function hideAllResources() {
+      document.querySelectorAll('.resource-bubble').forEach(b => b.classList.remove('visible'));
+    }
+
+    function showCategoryResources(category) {
+      const group = document.getElementById(`${category}-resources`);
+      group.querySelectorAll('.resource-bubble').forEach((b, i) => setTimeout(() => b.classList.add('visible'), i * 120));
+    }
+
+    function clearArrows() { arrowContainer.innerHTML = ''; }
+
+    function drawArrows(category) {
+      const cat = categoryPositions[category];
+      const targets = resourcePositions[category];
+      targets.forEach((pos, i) => setTimeout(() => {
+        const arrow = createArrow(cat.x, cat.y, pos.x, pos.y);
+        arrowContainer.appendChild(arrow);
+        requestAnimationFrame(() => arrow.classList.add('visible'));
+      }, i * 90));
+    }
+
+    function createArrow(x1, y1, x2, y2) {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.classList.add('connection-arrow');
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x1 + '%');
+      line.setAttribute('y1', y1 + '%');
+      line.setAttribute('x2', x2 + '%');
+      line.setAttribute('y2', y2 + '%');
+      line.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--violet') || '#8B5CF6');
+      line.setAttribute('stroke-width', '2');
+      line.classList.add('arrow-line');
+
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const tipX = x2, tipY = y2, L = 8, W = 4;
+      const bx1 = tipX - L * Math.cos(angle) - W * Math.sin(angle);
+      const by1 = tipY - L * Math.sin(angle) + W * Math.cos(angle);
+      const bx2 = tipX - L * Math.cos(angle) + W * Math.sin(angle);
+      const by2 = tipY - L * Math.sin(angle) - W * Math.cos(angle);
+
+      const head = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      head.setAttribute('points', `${tipX},${tipY} ${bx1},${by1} ${bx2},${by2}`);
+      head.setAttribute('fill', getComputedStyle(document.documentElement).getPropertyValue('--violet') || '#8B5CF6');
+
+      g.appendChild(line); g.appendChild(head); return g;
+    }
+
+    // Modal logic
+    const modal = document.getElementById('modal');
+    const closeBtn = document.getElementById('closeModalBtn');
+    function openResource(key) {
+      const r = resourceData[key];
+      document.getElementById('modal-title').textContent = r.t;
+      document.getElementById('modal-content').textContent = r.c;
+      document.getElementById('modal-link').innerHTML = `<a href="${r.u}" target="_blank" rel="noopener" class="inline-flex items-center bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-5 py-3 rounded-lg font-semibold">\n        <span class="mr-2">🌐</span> Visit ${new URL(r.u).hostname}\n      </a>`;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      closeBtn.focus();
+    }
+
+    function closeModal() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !modal.classList.contains('hidden')) closeModal(); });
+
+    // Ambient particles (subtle)
+    function createParticle(){
+      const p=document.createElement('div');
+      p.className='absolute w-1 h-1 bg-purple-300 rounded-full opacity-20 pointer-events-none';
+      p.style.left=Math.random()*100+'%';
+      p.style.top=Math.random()*100+'%';
+      p.style.animation='float 8s ease-in-out infinite';
+      p.style.animationDelay=(Math.random()*4)+'s';
+      document.body.appendChild(p); setTimeout(()=>p.remove(), 8000);
+    }
+    setInterval(createParticle, 4000);
+  </script>
+</body>
+</html>
